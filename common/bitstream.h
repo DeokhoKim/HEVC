@@ -33,12 +33,16 @@ private:
 class InputBitstream: public Bitstream
 {
 public:
-  InputBitstream();
+  InputBitstream(std::deque<unsigned char>*buf);
   virtual ~InputBitstream();
 
 private:
+  InputBitstream() {}
   InputBitstream(const InputBitstream&);
   void operator=(const InputBitstream&);
+
+  long long _stream_idx;
+  long long _num_read_bits;
 };
 
 class OutputBitstream: public Bitstream
@@ -50,6 +54,8 @@ public:
 private:
   OutputBitstream(const OutputBitstream&);
   void operator=(const OutputBitstream&);
+
+  long long _num_written_bits;
 };
 
 } // _BITSTREAM_H_
