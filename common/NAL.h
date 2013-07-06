@@ -6,6 +6,9 @@
 namespace HEVC
 {
 
+class InputBitstream;
+class OutputBitstream;
+
 enum NAL_UNIT_TYPE
 {
   NAL_UNIT_CODED_SLICE_TRAIL_N = 0, // 0
@@ -83,12 +86,12 @@ enum NAL_UNIT_TYPE
   NAL_UNIT_INVALID,
 };
 
-class NALUnitHeader
+class NALUnit
 {
 public:
-  NALUnitHeader() {}
-  NALUnitHeader(NAL_UNIT_TYPE type, int temporal_id=0, int reserved_zero_6bits=0);
-  virtual ~NALUnitHeader() {}
+  NALUnit() {}
+  NALUnit(NAL_UNIT_TYPE type, int temporal_id=0, int reserved_zero_6bits=0);
+  virtual ~NALUnit() {}
 
   bool is_slice() const;
   bool is_SEI() const;
@@ -107,48 +110,46 @@ protected:
   NAL_UNIT_TYPE _nal_unit_type;
   unsigned int _temporal_id;
   unsigned int _reserved_zero_6bits;
-
-private:
-  NALUnitHeader(const NALUnitHeader&);
-  void operator=(const NALUnitHeader&);
-
-};
-
-class NALUnitEBSP: public NALUnitHeader
-{
-public:
-  NALUnitEBSP() {}
-  virtual ~NALUnitEBSP() {}
-
-private:
-  NALUnitEBSP(const NALUnitEBSP&);
-  void operator=(const NALUnitEBSP&);
-
   std::deque<unsigned char> _nal_unit_data;
+
+private:
+  NALUnit(const NALUnit&);
+  void operator=(const NALUnit&);
 };
 
-class InputNALUnit: public NALUnitEBSP
+class InputNALUnit: public NALUnit
 {
 public:
-  InputNALUnit() {}
-  virtual ~InputNALUnit() {}
+  InputNALUnit();
+  virtual ~InputNALUnit();
+
+  void read(const std::deque<unsigned char>* buf);
 
 private:
   InputNALUnit(const InputNALUnit&);
   void operator=(const InputNALUnit&);
+
+  void read_NAL_unit_header();
+  void convert_payload_to_RBSP();
+
+  InputBitstream* _bitstream;
+  std::deque<const unsigned char*> _RBSP_locations;
 };
 
-class OutputNALUnit: public NALUnitEBSP
+class OutputNALUnit: public NALUnit
 {
 public:
   OutputNALUnit() {}
-  virtual ~OutputNALUnit() {}
+  OutputNALUnit(NAL_UNIT_TYPE type,
+                int temporal_id=0, int reserved_zero_6bits=0);
+  virtual ~OutputNALUnit();
 
 private:
   OutputNALUnit(const OutputNALUnit&);
   void operator=(const OutputNALUnit&);
-};
 
+  OutputBitstream* _bitstream;
+};
 
 } // namespace HEVC
 
