@@ -7,19 +7,14 @@
 namespace HEVC
 {
 
-class AccessUnit: public std::list<NALUnitEBSP*>
+class AccessUnit: public std::list<NALUnit*>
 {
 public:
   AccessUnit() {}
   virtual ~AccessUnit()
   {
     for(auto it = this->begin(); it != this->end(); it++)
-    {
       delete *it;
-      *it = NULL;
-    }
-
-    this.clear();
   }
 
 private:

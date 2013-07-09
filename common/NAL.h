@@ -6,9 +6,6 @@
 namespace HEVC
 {
 
-class InputBitstream;
-class OutputBitstream;
-
 enum NAL_UNIT_TYPE
 {
   NAL_UNIT_CODED_SLICE_TRAIL_N = 0, // 0
@@ -89,7 +86,7 @@ enum NAL_UNIT_TYPE
 class NALUnit
 {
 public:
-  NALUnit() {}
+  NALUnit();
   NALUnit(NAL_UNIT_TYPE type, int temporal_id=0, int reserved_zero_6bits=0);
   virtual ~NALUnit() {}
 
@@ -106,49 +103,27 @@ public:
   unsigned int get_reserved_zero_6bits() const { return _reserved_zero_6bits; }
   void set_reserved_zero_6bits(unsigned int val) { _reserved_zero_6bits = val; }
 
-protected:
-  NAL_UNIT_TYPE _nal_unit_type;
-  unsigned int _temporal_id;
-  unsigned int _reserved_zero_6bits;
-  std::deque<unsigned char> _nal_unit_data;
+  std::deque<unsigned char>& get_data() { return _nal_unit_data; }
+
+  static void read(NALUnit* nalu, const std::deque<unsigned char>* data=NULL);
+  static void write(NALUnit* nalu, std::deque<unsigned char>* out);
 
 private:
   NALUnit(const NALUnit&);
   void operator=(const NALUnit&);
-};
 
-class InputNALUnit: public NALUnit
-{
-public:
-  InputNALUnit();
-  virtual ~InputNALUnit();
+  static void read_NAL_unit_header(NALUnit* nalu);
+  static void convert_payload_to_RBSP(std::deque<unsigned char>* payload,
+                                      bool is_VCL_NAL_UNIT);
 
-  void read(const std::deque<unsigned char>* buf);
+  static void write_NAL_unit_header(const NALUnit& nalu,
+                                    std::deque<unsigned char>* out);
+  static void convert_RBSP_to_payload(std::deque<unsigned char>* rbps);
 
-private:
-  InputNALUnit(const InputNALUnit&);
-  void operator=(const InputNALUnit&);
-
-  void read_NAL_unit_header();
-  void convert_payload_to_RBSP();
-
-  InputBitstream* _bitstream;
-  std::deque<const unsigned char*> _RBSP_locations;
-};
-
-class OutputNALUnit: public NALUnit
-{
-public:
-  OutputNALUnit() {}
-  OutputNALUnit(NAL_UNIT_TYPE type,
-                int temporal_id=0, int reserved_zero_6bits=0);
-  virtual ~OutputNALUnit();
-
-private:
-  OutputNALUnit(const OutputNALUnit&);
-  void operator=(const OutputNALUnit&);
-
-  OutputBitstream* _bitstream;
+  NAL_UNIT_TYPE _nal_unit_type;
+  unsigned int _temporal_id;
+  unsigned int _reserved_zero_6bits;
+  std::deque<unsigned char> _nal_unit_data;
 };
 
 } // namespace HEVC
