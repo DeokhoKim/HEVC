@@ -13,15 +13,15 @@ namespace HEVC
 NALUnit::NALUnit()
 {
   _nal_unit_type = NAL_UNIT_INVALID;
+  _layer_id = 0;
   _temporal_id = 0;
-  _reserved_zero_6bits = 0;
 }
 
-NALUnit::NALUnit(NAL_UNIT_TYPE type, int temporal_id, int reserved_zero_6bits)
+NALUnit::NALUnit(NAL_UNIT_TYPE type, int layer_id, int temporal_id)
 {
   _nal_unit_type = type;
+  _layer_id = layer_id;
   _temporal_id = temporal_id;
-  _reserved_zero_6bits = reserved_zero_6bits;
 }
 
 bool NALUnit::is_slice() const
@@ -97,9 +97,9 @@ void NALUnit::read_NAL_unit_header(NALUnit* nalu)
   assert(forbidden_zero_bit == 0);
 
   nalu->_nal_unit_type = static_cast<NAL_UNIT_TYPE>(bitstream.read(6));
-  nalu->_reserved_zero_6bits = bitstream.read(6);
+  nalu->_layer_id = bitstream.read(6);
   nalu->_temporal_id = bitstream.read(3) - 1;
-  assert(nalu->_reserved_zero_6bits == 0);
+  assert(nalu->_layer_id == 0);
 
   nalu->_nal_unit_data.erase(nalu->_nal_unit_data.begin(),
                              nalu->_nal_unit_data.begin()+2);
@@ -195,7 +195,7 @@ void NALUnit::write_NAL_unit_header(const NALUnit& nalu,
 
   stream.write(0,1); // forbidden zero bits
   stream.write(nalu._nal_unit_type, 6);
-  stream.write(nalu._reserved_zero_6bits, 6);
+  stream.write(nalu._layer_id, 6);
   stream.write(nalu._temporal_id+1, 3);
 
   out->insert(out->end(), stream.get_stream().begin(),
@@ -209,7 +209,7 @@ void NALUnit::write_NAL_unit_header(const NALUnit& nalu, std::ostream* out)
 
   stream.write(0,1); // forbidden zero bits
   stream.write(nalu._nal_unit_type, 6);
-  stream.write(nalu._reserved_zero_6bits, 6);
+  stream.write(nalu._layer_id, 6);
   stream.write(nalu._temporal_id+1, 3);
 
   out->write(reinterpret_cast<const char*>(stream.get_stream().data()),

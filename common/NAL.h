@@ -88,7 +88,7 @@ class NALUnit
 {
 public:
   NALUnit();
-  NALUnit(NAL_UNIT_TYPE type, int temporal_id=0, int reserved_zero_6bits=0);
+  NALUnit(NAL_UNIT_TYPE type, int layer_id=0, int temporal_id=0);
   virtual ~NALUnit() {}
 
   bool is_slice() const;
@@ -98,11 +98,11 @@ public:
   NAL_UNIT_TYPE get_type() const { return _nal_unit_type; }
   void set_type(const NAL_UNIT_TYPE type) { _nal_unit_type = type; }
 
+  unsigned int get_layer_id() const { return _layer_id; }
+  void set_layer_id(unsigned int val) { _layer_id = val; }
+
   unsigned int get_temporal_id() const { return _temporal_id; }
   void set_temporal_id(unsigned int val) { _temporal_id = val; }
-
-  unsigned int get_reserved_zero_6bits() const { return _reserved_zero_6bits; }
-  void set_reserved_zero_6bits(unsigned int val) { _reserved_zero_6bits = val; }
 
   std::vector<unsigned char>& get_data() { return _nal_unit_data; }
 
@@ -124,8 +124,8 @@ private:
   static void convert_RBSP_to_payload(std::vector<unsigned char>* rbps);
 
   NAL_UNIT_TYPE _nal_unit_type;
+  unsigned int _layer_id;
   unsigned int _temporal_id;
-  unsigned int _reserved_zero_6bits;
   std::vector<unsigned char> _nal_unit_data;
 };
 

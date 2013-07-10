@@ -15,6 +15,7 @@ LIB_OBJ= \
 	common/AnnexB.o \
 	common/bitstream.o \
 	common/NAL.o \
+	common/syntax_element.o \
 
 TEST_OBJ= \
 	test/test_stream.o \
