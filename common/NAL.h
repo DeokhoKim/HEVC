@@ -2,6 +2,7 @@
 #define _NAL_H_
 
 #include <vector>
+#include <istream>
 
 namespace HEVC
 {
@@ -107,6 +108,7 @@ public:
 
   static void read(NALUnit* nalu, const std::vector<unsigned char>* data=NULL);
   static void write(NALUnit* nalu, std::vector<unsigned char>* out);
+  static void write(NALUnit* nalu, std::ostream* out);
 
 private:
   NALUnit(const NALUnit&);
@@ -118,6 +120,7 @@ private:
 
   static void write_NAL_unit_header(const NALUnit& nalu,
                                     std::vector<unsigned char>* out);
+  static void write_NAL_unit_header(const NALUnit& nalu, std::ostream* out);
   static void convert_RBSP_to_payload(std::vector<unsigned char>* rbps);
 
   NAL_UNIT_TYPE _nal_unit_type;

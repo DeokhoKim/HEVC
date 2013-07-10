@@ -202,6 +202,21 @@ void NALUnit::write_NAL_unit_header(const NALUnit& nalu,
                           stream.get_stream().end());
 }
 
+void NALUnit::write_NAL_unit_header(const NALUnit& nalu, std::ostream* out)
+{
+  assert(out!=NULL);
+  OutputBitstream stream;
+
+  stream.write(0,1); // forbidden zero bits
+  stream.write(nalu._nal_unit_type, 6);
+  stream.write(nalu._reserved_zero_6bits, 6);
+  stream.write(nalu._temporal_id+1, 3);
+
+  out->write(reinterpret_cast<const char*>(stream.get_stream().data()),
+             stream.get_stream().size());
+
+}
+
 void NALUnit::convert_RBSP_to_payload(std::vector<unsigned char>* rbsp)
 {
   assert(rbsp!=NULL);
@@ -256,6 +271,16 @@ void NALUnit::write(NALUnit* nalu, std::vector<unsigned char>* out)
   convert_RBSP_to_payload(&nalu->_nal_unit_data);
   out->insert(out->end(), nalu->_nal_unit_data.begin(),
                           nalu->_nal_unit_data.end());
+}
+
+void NALUnit::write(NALUnit* nalu, std::ostream* out)
+{
+  assert(nalu!=NULL);
+  assert(out!=NULL);
+  write_NAL_unit_header(*nalu, out);
+  convert_RBSP_to_payload(&nalu->_nal_unit_data);
+  out->write(reinterpret_cast<char*>(nalu->_nal_unit_data.data()),
+             nalu->_nal_unit_data.size());
 }
 
 } // namespace HEVC

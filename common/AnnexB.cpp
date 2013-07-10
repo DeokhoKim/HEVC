@@ -145,9 +145,7 @@ void NAL_units_to_bytestream(std::ostream* out, const AccessUnit& au)
     {
       out->write(start_code_prefix+1, 3);
     }
-    std::vector<unsigned char> nal_data;
-    NALUnit::write(&nalu, &nal_data);
-    out->write(reinterpret_cast<char*>(nal_data.data()), nal_data.size());
+    NALUnit::write(&nalu, out);
   }
 }
 
