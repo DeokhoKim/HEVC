@@ -3,7 +3,7 @@
 
 #include "access_unit.h"
 
-#include <deque>
+#include <vector>
 #include <istream>
 
 namespace HEVC
@@ -41,7 +41,7 @@ namespace AnnexB
 
 bool bytestream_to_NAL_unit(std::istream* bs,
                             AnnexBStats* stats,
-                            std::deque<unsigned char>* nal_data);
+                            std::vector<unsigned char>* nal_data);
 void NAL_units_to_bytestream(std::ostream* out, const AccessUnit& au);
 
 } // namespace AnnexB

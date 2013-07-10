@@ -1,7 +1,7 @@
 #ifndef _NAL_H_
 #define _NAL_H_
 
-#include <deque>
+#include <vector>
 
 namespace HEVC
 {
@@ -103,27 +103,27 @@ public:
   unsigned int get_reserved_zero_6bits() const { return _reserved_zero_6bits; }
   void set_reserved_zero_6bits(unsigned int val) { _reserved_zero_6bits = val; }
 
-  std::deque<unsigned char>& get_data() { return _nal_unit_data; }
+  std::vector<unsigned char>& get_data() { return _nal_unit_data; }
 
-  static void read(NALUnit* nalu, const std::deque<unsigned char>* data=NULL);
-  static void write(NALUnit* nalu, std::deque<unsigned char>* out);
+  static void read(NALUnit* nalu, const std::vector<unsigned char>* data=NULL);
+  static void write(NALUnit* nalu, std::vector<unsigned char>* out);
 
 private:
   NALUnit(const NALUnit&);
   void operator=(const NALUnit&);
 
   static void read_NAL_unit_header(NALUnit* nalu);
-  static void convert_payload_to_RBSP(std::deque<unsigned char>* payload,
+  static void convert_payload_to_RBSP(std::vector<unsigned char>* payload,
                                       bool is_VCL_NAL_UNIT);
 
   static void write_NAL_unit_header(const NALUnit& nalu,
-                                    std::deque<unsigned char>* out);
-  static void convert_RBSP_to_payload(std::deque<unsigned char>* rbps);
+                                    std::vector<unsigned char>* out);
+  static void convert_RBSP_to_payload(std::vector<unsigned char>* rbps);
 
   NAL_UNIT_TYPE _nal_unit_type;
   unsigned int _temporal_id;
   unsigned int _reserved_zero_6bits;
-  std::deque<unsigned char> _nal_unit_data;
+  std::vector<unsigned char> _nal_unit_data;
 };
 
 } // namespace HEVC

@@ -69,7 +69,7 @@ bool NALUnit::is_VCL() const
   return _nal_unit_type < 32;
 }
 
-void NALUnit::read(NALUnit* nalu, const std::deque<unsigned char>* data)
+void NALUnit::read(NALUnit* nalu, const std::vector<unsigned char>* data)
 {
   assert(nalu!=NULL);
 
@@ -90,7 +90,8 @@ void NALUnit::read_NAL_unit_header(NALUnit* nalu)
   assert(nalu != NULL);
   assert(!nalu->_nal_unit_data.empty());
 
-  InputBitstream bitstream(&nalu->_nal_unit_data);
+  InputBitstream bitstream(nalu->_nal_unit_data.data(),
+                           nalu->_nal_unit_data.size());
 
   bool forbidden_zero_bit = bitstream.read(1);
   assert(forbidden_zero_bit == 0);
@@ -100,8 +101,8 @@ void NALUnit::read_NAL_unit_header(NALUnit* nalu)
   nalu->_temporal_id = bitstream.read(3) - 1;
   assert(nalu->_reserved_zero_6bits == 0);
 
-  nalu->_nal_unit_data.pop_front();
-  nalu->_nal_unit_data.pop_front();
+  nalu->_nal_unit_data.erase(nalu->_nal_unit_data.begin(),
+                             nalu->_nal_unit_data.begin()+2);
 
   if(nalu->_temporal_id > 0)
   {
@@ -133,7 +134,7 @@ void NALUnit::read_NAL_unit_header(NALUnit* nalu)
   }
 }
 
-void NALUnit::convert_payload_to_RBSP(std::deque<unsigned char>* payload,
+void NALUnit::convert_payload_to_RBSP(std::vector<unsigned char>* payload,
                                       bool is_VCL_NAL_UNIT)
 {
   assert(payload!=NULL);
@@ -142,7 +143,7 @@ void NALUnit::convert_payload_to_RBSP(std::deque<unsigned char>* payload,
   if (payload->size() < 4) return;
 
   // find all locations of emulation prevention three byte with Wu-Manber
-  std::list<std::deque<unsigned char>::iterator> three_bytes;
+  std::list<std::vector<unsigned char>::iterator> three_bytes;
   for(auto it=payload->begin()+4; it!=payload->end();)
   {
     unsigned char rb = *it;
@@ -187,7 +188,7 @@ void NALUnit::convert_payload_to_RBSP(std::deque<unsigned char>* payload,
 }
 
 void NALUnit::write_NAL_unit_header(const NALUnit& nalu,
-                                    std::deque<unsigned char>* out)
+                                    std::vector<unsigned char>* out)
 {
   assert(out!=NULL);
   OutputBitstream stream;
@@ -201,14 +202,14 @@ void NALUnit::write_NAL_unit_header(const NALUnit& nalu,
                           stream.get_stream().end());
 }
 
-void NALUnit::convert_RBSP_to_payload(std::deque<unsigned char>* rbsp)
+void NALUnit::convert_RBSP_to_payload(std::vector<unsigned char>* rbsp)
 {
   assert(rbsp!=NULL);
 
   // Not enough size to have emulation three bytes
   if(rbsp->size() < 3) return;
 
-  std::list<std::deque<unsigned char>::iterator> three_bytes;
+  std::list<std::vector<unsigned char>::iterator> three_bytes;
   for(auto it=rbsp->begin()+2; it!=rbsp->end();)
   {
     unsigned char rbsp_data = *it;
@@ -247,7 +248,7 @@ void NALUnit::convert_RBSP_to_payload(std::deque<unsigned char>* rbsp)
     rbsp->push_back(0x03);
 }
 
-void NALUnit::write(NALUnit* nalu, std::deque<unsigned char>* out)
+void NALUnit::write(NALUnit* nalu, std::vector<unsigned char>* out)
 {
   assert(nalu!=NULL);
   assert(out!=NULL);

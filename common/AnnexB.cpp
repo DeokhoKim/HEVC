@@ -9,7 +9,7 @@ namespace HEVC
 static bool eof_before_n_bytes(std::istream* bs, int n)
 {
   assert(n>0 && n<5);
-  assert(!bs->eof() && !bs->fail() && !bs->bad());
+  if(bs->eof() | bs->fail() | bs->bad()) return true;
 
   bool ret = false;
   const std::streampos cur = bs->tellg();
@@ -26,7 +26,7 @@ static bool eof_before_n_bytes(std::istream* bs, int n)
 static unsigned int peek_bytes(std::istream* bs, int n)
 {
   assert(n>0 && n<5);
-  assert(!bs->eof() && !bs->fail() && !bs->bad());
+  if(bs->eof() | bs->fail() | bs->bad()) return 0;
   std::streampos cur = bs->tellg();
 
   char buf[4] = {0};
@@ -69,7 +69,7 @@ namespace AnnexB
 /// Returns false if EOF is reached otherwise true.
 bool bytestream_to_NAL_unit(std::istream* bs,
                             AnnexBStats* stats,
-                            std::deque<unsigned char>* nal_data)
+                            std::vector<unsigned char>* nal_data)
 {
   assert(bs!=NULL && stats != NULL && nal_data != NULL);
   bool ret = false;
@@ -103,13 +103,17 @@ bool bytestream_to_NAL_unit(std::istream* bs,
 
   while(eof_before_n_bytes(bs, 24/8) || peek_bytes(bs, 24/8) > 2)
   {
-    nal_data->push_back(read_byte(bs));
+    unsigned char byte = read_byte(bs);
+    if(bs->eof()) break;
+    nal_data->push_back(byte);
   }
 
-  while((eof_before_n_bytes(bs, 24/8) || peek_bytes(bs, 24/8)!=0x000001) &&
+  while(!bs->eof() &&
+        (eof_before_n_bytes(bs, 24/8) || peek_bytes(bs, 24/8)!=0x000001) &&
         (eof_before_n_bytes(bs, 32/8) || peek_bytes(bs, 32/8)!=0x00000001))
   {
     unsigned int trailing_zero_8bits = read_byte(bs);
+    if(bs->eof()) break;
     assert(trailing_zero_8bits == 0);
     stats->num_trailling_zero_bytes++;
   }
@@ -119,6 +123,11 @@ bool bytestream_to_NAL_unit(std::istream* bs,
   return ret;
 }
 
+/// Write all NAL units in an access unit @au to bytestream @out in a manner
+/// satisfying AnnexB of AVC. NAL units are written in the order they are found
+/// in @au. The zero byte word is appended to:
+/// - the initial startcode in the access unit
+/// - any SPS / PPS NAL units
 void NAL_units_to_bytestream(std::ostream* out, const AccessUnit& au)
 {
   for(auto it=au.cbegin(); it!=au.cend(); it++)
@@ -136,9 +145,9 @@ void NAL_units_to_bytestream(std::ostream* out, const AccessUnit& au)
     {
       out->write(start_code_prefix+1, 3);
     }
-    std::deque<unsigned char> nal_data;
+    std::vector<unsigned char> nal_data;
     NALUnit::write(&nalu, &nal_data);
-    out->write(reinterpret_cast<char*>(&nal_data.front()), nal_data.size());
+    out->write(reinterpret_cast<char*>(nal_data.data()), nal_data.size());
   }
 }
 

@@ -17,8 +17,7 @@ LIB_OBJ= \
 	common/NAL.o \
 
 TEST_OBJ= \
-	test/test_AnnexB.o \
-	test/test_NAL.o \
+	test/test_stream.o \
 
 all: mkdir library
 
