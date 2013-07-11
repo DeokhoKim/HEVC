@@ -17,16 +17,16 @@ static inline int convert_to_int(unsigned int val)
   return (val & 0x01) ? -int(val>>1) : int(val>>1);
 }
 
-unsigned int read_code(InputBitstream* bitstream, int len)
+unsigned int read_code(InputBitstream* bs, int len)
 {
-  assert(bitstream!=NULL);
-  return bitstream->read(len);
+  assert(bs!=NULL);
+  return bs->read(len);
 }
 
-unsigned int read_uvlc(InputBitstream* bitstream)
+unsigned int read_uvlc(InputBitstream* bs)
 {
-  assert(bitstream!=NULL);
-  unsigned int code = bitstream->read(1);
+  assert(bs!=NULL);
+  unsigned int code = bs->read(1);
 
   if(code!=0) return 0;
 
@@ -34,19 +34,19 @@ unsigned int read_uvlc(InputBitstream* bitstream)
   unsigned int ret = 0;
   while((code & 0x01) == 0)
   {
-    code = bitstream->read(1);
+    code = bs->read(1);
     len++;
   }
 
-  ret = bitstream->read(len);
+  ret = bs->read(len);
   ret += (1u << len) - 1;
   return ret;
 }
 
-int read_svlc(InputBitstream* bitstream)
+int read_svlc(InputBitstream* bs)
 {
-  assert(bitstream!=NULL);
-  unsigned int bits = bitstream->read(1);
+  assert(bs!=NULL);
+  unsigned int bits = bs->read(1);
 
   if(bits!=0) return 0;
 
@@ -55,31 +55,31 @@ int read_svlc(InputBitstream* bitstream)
 
   while((bits & 0x01) == 0)
   {
-    bits = bitstream->read(1);
+    bits = bs->read(1);
     len++;
   }
 
-  ret = bitstream->read(len);
+  ret = bs->read(len);
   ret = convert_to_int(ret);
   return ret;
 }
 
-unsigned int read_flag(InputBitstream* bitstream)
+unsigned int read_flag(InputBitstream* bs)
 {
-  assert(bitstream!=NULL);
-  return bitstream->read(1);
+  assert(bs!=NULL);
+  return bs->read(1);
 }
 
-void write_code(OutputBitstream* bitstream, unsigned int code, int len)
+void write_code(OutputBitstream* bs, unsigned int code, int len)
 {
-  assert(bitstream!=NULL);
+  assert(bs!=NULL);
   assert(len > 0);
-  bitstream->write(code, len);
+  bs->write(code, len);
 }
 
-void write_uvlc(OutputBitstream* bitstream, unsigned int code)
+void write_uvlc(OutputBitstream* bs, unsigned int code)
 {
-  assert(bitstream!=NULL);
+  assert(bs!=NULL);
   int len = 1;
   unsigned int tmp_code = ++code;
   assert(tmp_code!=0);
@@ -90,20 +90,20 @@ void write_uvlc(OutputBitstream* bitstream, unsigned int code)
     len += 2;
   }
 
-  bitstream->write(0, len>>1);
-  bitstream->write(code, (len+1)>>1);
+  bs->write(0, len>>1);
+  bs->write(code, (len+1)>>1);
 }
 
-void write_flag(OutputBitstream* bitstream, unsigned int code)
+void write_flag(OutputBitstream* bs, unsigned int code)
 {
-  assert(bitstream!=NULL);
-  bitstream->write(code, 1);
+  assert(bs!=NULL);
+  bs->write(code, 1);
 }
 
-void write_svlc(OutputBitstream* bitstream, int code)
+void write_svlc(OutputBitstream* bs, int code)
 {
-  assert(bitstream!=NULL);
-  write_uvlc(bitstream, convert_to_uint(code));
+  assert(bs!=NULL);
+  write_uvlc(bs, convert_to_uint(code));
 }
 
 } // namespace SyntaxElement

@@ -11,16 +11,16 @@ namespace SyntaxElement
 {
 
 // syntax elemement parsing
-unsigned int read_code(InputBitstream* bistream, int len);
-unsigned int read_uvlc(InputBitstream* bitstream);
-unsigned int read_flag(InputBitstream* bitstream);
-int read_svlc(InputBitstream* bitstream);
+unsigned int read_code(InputBitstream* bs, int len);
+unsigned int read_uvlc(InputBitstream* bs);
+unsigned int read_flag(InputBitstream* bs);
+int read_svlc(InputBitstream* bs);
 
 // syntax element writing
-void write_code(OutputBitstream* bitstream, unsigned int code, int len);
-void write_uvlc(OutputBitstream* bitstream, unsigned int code);
-void write_flag(OutputBitstream* bitstream, unsigned int code);
-void write_svlc(OutputBitstream* bitstream, int code);
+void write_code(OutputBitstream* bs, unsigned int code, int len);
+void write_uvlc(OutputBitstream* bs, unsigned int code);
+void write_flag(OutputBitstream* bs, unsigned int code);
+void write_svlc(OutputBitstream* bs, int code);
 
 } // namespace SyntaxElement
 

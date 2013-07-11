@@ -6,8 +6,23 @@
 namespace HEVC
 {
 
+/// Data object: Picture Parameter Set (PPS) syntax based on JCTVC-L1003
+/// rev. 34.
 class PPS
 {
+public:
+  PPS()
+  {
+    column_width = NULL;
+    row_height = NULL;
+  }
+
+  virtual ~PPS()
+  {
+    if(column_width != NULL) delete column_width;
+    if(row_height != NULL) delete row_height;
+  }
+
   int pps_id; ///< pps_pic_parameter_set_id
   int sps_id; ///< pps_seq_parameter_set_id
   bool dependent_slice_segment_enabled_flag;
@@ -40,9 +55,9 @@ class PPS
   // if(!uniform_spacing_flag)
   // {
   // for(i=0; i<num_tile_columns_minus1; i++)
-  std::vector<int> column_width; ///< column_width_minus1[i] + 1
+  int* column_width; ///< column_width_minus1[i] + 1
   // for(i=0; i<num_tile_rows_minus1; i++)
-  std::vector<int> row_height; ///< row_height_minus1[i] + 1
+  int* row_height; ///< row_height_minus1[i] + 1
   // }
   bool loop_filter_accross_tiles_enabled_flag;
   // }

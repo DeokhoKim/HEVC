@@ -1,16 +1,48 @@
 #ifndef _SPS_H_
 #define _SPS_H_
 
+#include "PTL.h"
+
 #include <vector>
 
 namespace HEVC
 {
 
+/// Data object: Sequence Parameter Set (SPS) syntax based on JCTVC-L1003
+/// rev. 34.
 class SPS
 {
+public:
+  SPS()
+  {
+    profile_tier_level = NULL;
+    max_dec_pic_buffering = NULL;
+    max_num_reorder_pics = NULL;
+    max_latency_increase = NULL;
+    lt_ref_pic_poc_lsb_sps = NULL;
+    used_by_curr_pic_it_sps_flag = NULL;
+  }
+
+  virtual ~SPS()
+  {
+    if(profile_tier_level != NULL)
+      delete profile_tier_level;
+    if(max_dec_pic_buffering != NULL)
+      delete[] max_dec_pic_buffering;
+    if(max_num_reorder_pics != NULL)
+      delete[] max_num_reorder_pics;
+    if(max_latency_increase != NULL)
+      delete[] max_latency_increase;
+    if(lt_ref_pic_poc_lsb_sps != NULL)
+      delete[] lt_ref_pic_poc_lsb_sps;
+    if(used_by_curr_pic_it_sps_flag != NULL)
+      delete[] used_by_curr_pic_it_sps_flag;
+  }
+
   int vps_id; ///< sps_video_parameter_set_id
   int max_sub_layers; ///< sps_max_sub_layers_minus1 + 1
   bool temporal_id_nesting_flag;
+  PTL* profile_tier_level;
   // profile_tier_level(max_sub_layers_minus1)
 
   int sps_id; ///< sps_seq_parameter_set_id
@@ -22,13 +54,10 @@ class SPS
 
   bool conformance_widow_flag;
   // if(conformance_window_flag)
-  class conformance_window
-  {
-    int conf_win_left_offset;
-    int conf_win_right_offset;
-    int conf_win_top_offset;
-    int conf_win_bottom_offset;
-  } conf_window;
+  int conf_win_left_offset;
+  int conf_win_right_offset;
+  int conf_win_top_offset;
+  int conf_win_bottom_offset;
 
   int bit_depth_luma; ///< bit_depth_luma_minus8 + 8
   int bit_depth_chroma; ///< bit_depth_chroma_minus8 + 8
@@ -40,9 +69,9 @@ class SPS
   //       sps_max_sub_layers_minus1;
   //     i<=sps_max_sub_layers_minus1; i++)1
   // {
-  std::vector<int> max_dec_pic_buffering; ///< sps_max_dec_pic_buffering_minus+1
-  std::vector<int> max_num_reorder_pics;
-  std::vector<int> max_latency_increase; ///< sps_max_latency_increase_plus1-1
+  int* max_dec_pic_buffering; ///< sps_max_dec_pic_buffering_minus+1
+  int* max_num_reorder_pics;
+  int* max_latency_increase; ///< sps_max_latency_increase_plus1-1
   // }
 
   int log2_min_luma_coding_block_size;
@@ -84,8 +113,8 @@ class SPS
   int num_long_term_ref_pics_sps;
   // for(i=0; i<num_long_term_ref_pics_sps; i++)
   // {
-  std::vector<int> lt_ref_pic_poc_lsb_sps;
-  std::vector<bool> used_by_curr_pic_it_sps_flag;
+  int* lt_ref_pic_poc_lsb_sps;
+  bool* used_by_curr_pic_it_sps_flag;
   // }
   // }
   bool sps_temporal_mvp_enabled_flag;
@@ -98,7 +127,6 @@ class SPS
   //   while(more_rbsp_data())
   //    sps_extension_data_flag;
   // rbsp_trailing_bits()
-
 private:
   SPS(const SPS&);
   void operator=(const SPS&);

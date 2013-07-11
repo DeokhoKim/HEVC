@@ -16,8 +16,11 @@ LIB_OBJ= \
 	common/bitstream.o \
 	common/NAL.o \
 	common/syntax_element.o \
+	common/VPS.o \
+	decoder/CAVLC_decoder.o \
 
 TEST_OBJ= \
+	test/test_CAVLC_decoder.o \
 	test/test_stream.o \
 
 all: mkdir library
