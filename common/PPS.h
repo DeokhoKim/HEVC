@@ -1,7 +1,9 @@
 #ifndef _PPS_H_
 #define _PPS_H_
 
-#include <vector>
+#include "scaling_list.h"
+
+#include <cstdlib>
 
 namespace HEVC
 {
@@ -15,76 +17,57 @@ public:
   {
     column_width = NULL;
     row_height = NULL;
+    scaling_list = NULL;
   }
 
   virtual ~PPS()
   {
-    if(column_width != NULL) delete column_width;
-    if(row_height != NULL) delete row_height;
+    if(column_width != NULL) delete[] column_width;
+    if(row_height != NULL) delete[] row_height;
+    if(scaling_list!=NULL) delete scaling_list;
   }
 
-  int pps_id; ///< pps_pic_parameter_set_id
-  int sps_id; ///< pps_seq_parameter_set_id
-  bool dependent_slice_segment_enabled_flag;
-  bool output_flag_present_flag;
+  int pps_id;
+  int sps_id;
+  bool dependent_slice_segments_enabled;
+  bool output_flag_present;
   int num_extra_slice_header_bits;
-  bool sign_data_hiding_enabled_flag;
-  bool cabac_init_present_flag;
-  int num_ref_idx_l0_default_active; ///< num_ref_idx_l0_default_active_minus1+1
-  int num_ref_idx_l1_default_active; ///< num_ref_idx_l1_default_active_minus1+1
-  int init_qp; ///< init_qp_minus26 + 26;
+  bool sign_data_hiding_enabled;
+  bool cabac_init_present;
+  int num_ref_idx_l0_default_active;
+  int num_ref_idx_l1_default_active;
+  int init_qp;
   bool constrained_intra_pred_flag;
-  bool transform_skip_enabled_flag;
-  bool cu_qp_delta_enabled_flag;
-  // if(cu_qp_delta_enabled_flag)
+  bool transform_skip_enabled;
+  bool cu_qp_delta_enabled;
   int diff_cu_qp_delta_depth;
-  int cb_qp_offset; ///< pps_cb_qp_offset
-  int cr_qp_offset; ///< pps_cr_qp_offset
-  bool slice_chroma_qp_offsets_present_flag;
-  ///< pps_slice_chroma_qp_offsets_present_flag
+  int cb_qp_offset;
+  int cr_qp_offset;
+  bool slice_chroma_qp_offsets_present;
   bool weighted_pred_flag;
   bool weighted_bipred_flag;
-  bool transquant_bypass_enabled_flag;
-  bool tiles_enabled_flag;
-  bool entropy_codign_sync_enabled_flag;
-  // if(tiles_enabled_flag)
-  // {
-  int num_tile_columns; ///< num_tile_columns_minus1 + 1
-  int num_tile_rows; ///< num_tile_rows_minus1 + 1
+  bool transquant_bypass_enabled;
+  bool tiles_enabled;
+  bool entropy_coding_sync_enabled;
+  int num_tile_columns;
+  int num_tile_rows;
   bool uniform_spacing_flag;
-  // if(!uniform_spacing_flag)
-  // {
-  // for(i=0; i<num_tile_columns_minus1; i++)
-  int* column_width; ///< column_width_minus1[i] + 1
-  // for(i=0; i<num_tile_rows_minus1; i++)
-  int* row_height; ///< row_height_minus1[i] + 1
-  // }
-  bool loop_filter_accross_tiles_enabled_flag;
-  // }
-  bool loop_filter_accross_slices_enabled_flag;
-  ///< pps_loop_filter_accross_slices_enabled_flag
-  bool deblocking_filter_control_present_flag;
-  // if(deblocking_filter_control_present_flag)
-  // {
-  bool deblocking_filter_overrid_enabled_flag;
-  bool deblocking_filter_disabled_flag; ///< pps_deblocking_filter_disabled_flag
-  // if(!pps_deblocking_filter_disabled_flag)
-  // {
-  int beta_offset; ///< pps_beta_offset_div2 * 2
-  int tc_offset; ///< pps_tc_offset_div2 * 2
-  // }
-  // }
-  bool scaling_list_data_present_flag; ///< pps_scaling_list_data_present_flag
-  // if(pps_scaling_list_data_present_flag)
-  // scaling_list_data()
-  bool lists_modification_present_flag;
-  int log2_parallel_merge_level; ///< log2_parallel_merge_level_minus2 + 2
-  bool slice_segment_header_extension_present_flag;
-  bool extension_flag; ///< pps_extension_flag
-  // if(pps_extension_flag)
-  //  while(more_rbsp_data())
-  bool extension_data_flag; ///< pps_extension_data_flag;
-  // rbsp_trailing_bits()
+  int* column_width;
+  int* row_height;
+  bool loop_filter_across_tiles_enabled;
+  bool loop_filter_across_slices_enabled;
+  bool deblocking_filter_control_present;
+  bool deblocking_filter_override_enabled;
+  bool deblocking_filter_disabled;
+  int beta_offset;
+  int tc_offset;
+  bool scaling_list_data_present;
+  ScalingList* scaling_list;
+  bool lists_modification_present;
+  int log2_parallel_merge_level;
+  bool slice_segment_header_extension_present;
+  bool extension_flag;
+  bool extension_data_flag;
 
 private:
   PPS(const PPS&);

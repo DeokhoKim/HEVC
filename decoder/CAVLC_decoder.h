@@ -6,11 +6,6 @@
 namespace HEVC
 {
 
-class PPS;
-class PTL;
-class SPS;
-class VPS;
-
 class CAVLCDecoder: public EntropyDecIf
 {
 public:
@@ -26,6 +21,12 @@ private:
   void operator=(const CAVLCDecoder&);
 
   void decode_ptl(InputBitstream* bs, PTL* ptl, int max_sub_layers) const;
+  void decode_scaling_list(InputBitstream* bs, ScalingList* sl) const;
+  void decode_vui(InputBitstream* bs, VUI* vui) const;
+  void decode_hrd(InputBitstream* bs, HRD* hrd,
+                  bool common_info_present, int max_sub_layers) const;
+  void decode_sub_layer_hrd(InputBitstream* bs, HRD* hrd,
+                            SubLayerHRD* sub_hrd, int ix) const;
 };
 
 } // namespaces HEVC
