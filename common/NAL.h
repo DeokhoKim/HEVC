@@ -2,10 +2,12 @@
 #define _NAL_H_
 
 #include <vector>
-#include <istream>
 
 namespace HEVC
 {
+
+class InputBitstream;
+class OutputBitstream;
 
 enum NAL_UNIT_TYPE
 {
@@ -84,49 +86,48 @@ enum NAL_UNIT_TYPE
   NAL_UNIT_INVALID,
 };
 
-class NALUnit
+/// JCTVC-L1003 rev. 34.
+/// 7.3.1.2 NAL unit header syntax.
+class NALUnitHeader
 {
 public:
-  NALUnit();
-  NALUnit(NAL_UNIT_TYPE type, int layer_id=0, int temporal_id=0);
+  NALUnitHeader() {}
+  virtual ~NALUnitHeader() {}
+
+  void read_header(InputBitstream* bs);
+  void write_header(OutputBitstream* bs);
+
+  inline NAL_UNIT_TYPE get_type() const { return _nal_unit_type; }
+
+private:
+  NALUnitHeader(const NALUnitHeader&);
+  void operator=(NALUnitHeader&);
+
+  NAL_UNIT_TYPE _nal_unit_type; /// u(6)
+  int _nuh_layer_id; /// u(6)
+  int _nuh_temporal_id; /// u(3) - 1
+
+};
+
+/// JCTVC-L1003 rev. 34.
+/// 7.3.1.1 General NAL unit syntax.
+class NALUnit: public NALUnitHeader
+{
+public:
+  NALUnit() {}
   virtual ~NALUnit() {}
 
-  bool is_slice() const;
-  bool is_SEI() const;
-  bool is_VCL() const;
+  void read_rbsp();
+  void write_rbsp();
+  void read();
+  void write();
 
-  NAL_UNIT_TYPE get_type() const { return _nal_unit_type; }
-  void set_type(const NAL_UNIT_TYPE type) { _nal_unit_type = type; }
-
-  unsigned int get_layer_id() const { return _layer_id; }
-  void set_layer_id(unsigned int val) { _layer_id = val; }
-
-  unsigned int get_temporal_id() const { return _temporal_id; }
-  void set_temporal_id(unsigned int val) { _temporal_id = val; }
-
-  std::vector<unsigned char>& get_data() { return _nal_unit_data; }
-
-  static void read(NALUnit* nalu, const std::vector<unsigned char>* data=NULL);
-  static void write(NALUnit* nalu, std::vector<unsigned char>* out);
-  static void write(NALUnit* nalu, std::ostream* out);
-
+  inline std::vector<unsigned char>& get_rbsp() { return _rbsp_bytes; }
 private:
   NALUnit(const NALUnit&);
   void operator=(const NALUnit&);
 
-  static void read_NAL_unit_header(NALUnit* nalu);
-  static void convert_payload_to_RBSP(std::vector<unsigned char>* payload,
-                                      bool is_VCL_NAL_UNIT);
-
-  static void write_NAL_unit_header(const NALUnit& nalu,
-                                    std::vector<unsigned char>* out);
-  static void write_NAL_unit_header(const NALUnit& nalu, std::ostream* out);
-  static void convert_RBSP_to_payload(std::vector<unsigned char>* rbps);
-
-  NAL_UNIT_TYPE _nal_unit_type;
-  unsigned int _layer_id;
-  unsigned int _temporal_id;
-  std::vector<unsigned char> _nal_unit_data;
+  std::vector<unsigned char> _rbsp_bytes; /// b(8)
 };
 
 } // namespace HEVC

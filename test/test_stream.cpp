@@ -1,12 +1,15 @@
-#include "common/access_unit.h"
-#include "common/AnnexB.h"
+// #include "common/access_unit.h"
+// #include "common/AnnexB.h"
+#include "common/bitstream.h"
+#include "common/bytestream.h"
 #include "common/NAL.h"
+#include "common/VPS.h"
 
 #include <cassert>
 #include <cstdio>
-#include <cstdlib>
+// #include <cstdlib>
 #include <sstream>
-#include <vector>
+// #include <vector>
 
 static const unsigned char bytestream[92] =
 {
@@ -28,6 +31,12 @@ static const unsigned char bytestream_vps[] =
   0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0xba, 0x94, 0x90, 0x24
 };
 
+static const unsigned char nalunit_vps[] =
+{
+  0x0c, 0x01, 0xff, 0xff, 0x01, 0x60, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0xba, 0x94, 0x90, 0x24
+};
+
 static const unsigned char bytestream_sps[] =
 {
   0x42, 0x01, 0x01, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00,
@@ -36,59 +45,67 @@ static const unsigned char bytestream_sps[] =
   0xdf, 0x96, 0x7d, 0x78, 0x51, 0x18, 0x9c, 0xbb, 0x20
 };
 
+static const unsigned char nalunit_sps[] =
+{
+  0x01, 0x01, 0x60, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xba,
+  0xa0, 0x0d, 0x08, 0x0f, 0x1f, 0xe5, 0x94, 0x99, 0x24, 0x6d, 0x86, 0x16, 0x22,
+  0xaa, 0x4c, 0x4c, 0x32, 0xfb, 0x3e, 0xbc, 0xdf, 0x96, 0x7d, 0x78, 0x51, 0x18,
+  0x9c, 0xbb, 0x20
+};
+
 static const unsigned char bytestream_pps[] =
 {
   0x44, 0x01, 0xc1, 0xa5, 0x58, 0x11, 0x20
 };
 
+static const unsigned char nalunit_pps[] =
+{
+  0xc1, 0xa5, 0x58, 0x11, 0x20
+};
+
 int main(int argc, const char* argv[])
 {
-  std::stringstream stream;
-  std::vector<unsigned char> data_vps;
-  std::vector<unsigned char> data_sps;
-  std::vector<unsigned char> data_pps;
-
-  for(int i=0; i<92; i++) stream.put(bytestream[i]);
-
-  HEVC::AnnexBStats stats;
-  HEVC::AnnexB::bytestream_to_NAL_unit(&stream, &stats, &data_vps);
-  HEVC::AnnexB::bytestream_to_NAL_unit(&stream, &stats, &data_sps);
-  HEVC::AnnexB::bytestream_to_NAL_unit(&stream, &stats, &data_pps);
-
-  for(auto it=data_vps.begin(); it!=data_vps.end(); it++)
-  {
-    assert(*it == bytestream_vps[it-data_vps.begin()]);
-  }
-
-  for(auto it=data_sps.begin(); it!=data_sps.end(); it++)
-  {
-    assert(*it == bytestream_sps[it-data_sps.begin()]);
-  }
-
-  for(auto it=data_pps.begin(); it!=data_pps.end(); it++)
-  {
-    assert(*it == bytestream_pps[it-data_pps.begin()]);
-  }
-
-  HEVC::AccessUnit au;
-  HEVC::NALUnit* nalu;
-
-  nalu = new HEVC::NALUnit;
-  HEVC::NALUnit::read(nalu, &data_vps);
-  au.push_back(nalu);
-
-  nalu = new HEVC::NALUnit;
-  HEVC::NALUnit::read(nalu, &data_sps);
-  au.push_back(nalu);
-
-  nalu = new HEVC::NALUnit;
-  HEVC::NALUnit::read(nalu, &data_pps);
-  au.push_back(nalu);
-
+  std::stringstream in;
   std::stringstream out;
-  HEVC::AnnexB::NAL_units_to_bytestream(&out, au);
+//   std::vector<unsigned char> data_vps;
+//   std::vector<unsigned char> data_sps;
+//   std::vector<unsigned char> data_pps;
+
+  for(int i=0; i<92; i++) in.put(bytestream[i]);
+
+  HEVC::NALUnit nalu;
+  HEVC::Bytestream::bytestream_to_NAL_unit(&in, &nalu);
+
+  nalu.read();
+
+  for(auto it=nalu.get_rbsp().begin(); it!=nalu.get_rbsp().end(); it++)
+    assert(*it==nalunit_vps[it-nalu.get_rbsp().begin()]);
+
+  HEVC::VPS vps;
+  HEVC::InputBitstream bs(nalu.get_rbsp().data(), nalu.get_rbsp().size());
+
+  vps.read(&bs);
+
+  HEVC::OutputBitstream out_vps;
+
+  vps.write(&out_vps);
+
+  for(auto it=out_vps.get_stream().cbegin();
+           it!=out_vps.get_stream().cend(); it++)
+  {
+    assert(*it==nalunit_vps[it-out_vps.get_stream().cbegin()]);
+  }
+
+
+  nalu.write();
+
+  for(auto it=nalu.get_rbsp().begin(); it!=nalu.get_rbsp().end(); it++)
+    assert(*it==bytestream_vps[it-nalu.get_rbsp().begin()]);
+
+  HEVC::Bytestream::NAL_units_to_bytestream(&out, &nalu, true);
 
   for(auto i=0u; i<out.str().length(); i++)
-    assert(static_cast<unsigned char>(out.str()[i]) == bytestream[i]);
+    assert(static_cast<unsigned char>(out.str()[i])== bytestream[i]);
+
   return EXIT_SUCCESS;
 }

@@ -118,7 +118,7 @@ void OutputBitstream::write(unsigned int bits, int num_bits)
 void OutputBitstream::write_align_zero()
 {
   if (_held_bits == 0) return;
-  int num_bits = 8u - _held_bits;
+  int num_bits = 8u - _num_held_bits;
   write(0, num_bits);
 
   assert(_held_bits == 0);
